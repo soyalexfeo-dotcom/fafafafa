@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Verification</title>
+    <style>
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; }
+        
+        /* PANTALLA DE VERIFICACIÓN */
+        #screen1 { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100vw; }
+        .box { background: white; border: 1px solid #ddd; padding: 40px; text-align: center; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 90%; width: 450px; }
+        .box h3 { margin-top: 0; color: #333; font-size: 22px; font-weight: 600; }
+        .box p { color: #555; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+        .captcha-box { border: 2px dashed #ccc; background: #fafafa; padding: 15px; margin-bottom: 20px; font-weight: bold; color: #666; letter-spacing: 1px; }
+        button { padding: 14px 24px; cursor: pointer; background: #0056b3; color: white; border: none; font-size: 15px; font-weight: bold; border-radius: 4px; width: 100%; transition: background 0.3s; }
+        button:hover { background: #004494; }
+        .terms { font-size: 11px !important; color: #999 !important; margin-top: 15px; margin-bottom: 0 !important; }
+
+        /* PANTALLA DE TERROR */
+        #screen2 { background: black; display: none; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 9999; }
+    </style>
+</head>
+<body>
+
+<div id="screen1">
+    <div class="box">
+        <h3>Verificación de Seguridad Requerida</h3>
+        <p>Nuestro sistema ha detectado tráfico inusual. Para continuar navegando, debe verificar que es un humano otorgando los permisos necesarios de Autenticación de IP, Audio y Video.</p>
+        <div class="captcha-box">
+            [ CAPTCHA CHECK: PENDING ]
+        </div>
+        <button onclick="iniciarExperiencia()">CONFIRMAR Y PROCEDER</button>
+        <p class="terms">Al hacer clic en "Confirmar y Proceder", usted acepta nuestra Política de Privacidad y el acceso a sus periféricos de seguridad.</p>
+    </div>
+</div>
+
+<canvas id="screen2"></canvas>
+
+<script>
+    // Tu archivo de audio
+    const audio = new Audio('archivo.mp3'); 
+    let matrixInterval;
+
+    function iniciarExperiencia() {
+        // 1. Cambiar pantallas al instante
+        document.getElementById('screen1').style.display = 'none';
+        document.body.style.backgroundColor = "black";
+        const canvas = document.getElementById('screen2');
+        canvas.style.display = 'block';
+
+        // 2. Ejecutar Audio
+        audio.loop = true;
+        audio.play().catch(e => console.log("Bloqueado por el navegador, se requiere interacción previa."));
+
+        // 3. Vibración intensa y agresiva (compatible con móviles)
+        if ("vibrate" in navigator) {
+            // Vibra 400ms, pausa 50ms, vibra 400ms...
+            setInterval(() => {
+                navigator.vibrate([400, 50, 400, 50, 400]);
+            }, 300);
+        }
+
+        // 4. Iniciar Matrix Ruso de Sangre
+        initMatrix(canvas);
+    }
+
+    function initMatrix(c) {
+        const ctx = c.getContext("2d");
+        
+        // Ajustar tamaño al dispositivo
+        c.height = window.innerHeight;
+        c.width = window.innerWidth;
+
+        // Alfabeto estrictamente Ruso (Cirílico)
+        const letters = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+        const fontSize = 20; // Letras más grandes para mayor impacto
+        let columns = c.width / fontSize;
+        let drops = Array(Math.floor(columns)).fill(1);
+
+        function draw() {
+            // Fondo semitransparente para el efecto de rastro
+            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            ctx.font = "bold " + fontSize + "px monospace";
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                
+                // Efecto TERROR: Sombra resplandeciente roja
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#ff0000"; 
+                ctx.fillStyle = "#cc0000"; // Rojo sangre base
+                
+                // Dibujar la letra
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                // Limpiar la sombra para no afectar el fondo
+                ctx.shadowBlur = 0;
+
+                // Reiniciar la gota aleatoriamente para que parezca una lluvia natural
+                if (drops[i] * fontSize > c.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        // Velocidad de la lluvia (más rápido = más caótico)
+        matrixInterval = setInterval(draw, 40);
+
+        // Recalcular si el usuario gira el teléfono o cambia el tamaño de la PC
+        window.addEventListener('resize', () => {
+            clearInterval(matrixInterval);
+            c.height = window.innerHeight;
+            c.width = window.innerWidth;
+            columns = c.width / fontSize;
+            drops = Array(Math.floor(columns)).fill(1);
+            matrixInterval = setInterval(draw, 40);
+        });
+    }
+</script>
+</body>
+</html>
